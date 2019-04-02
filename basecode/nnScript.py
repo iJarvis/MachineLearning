@@ -11,7 +11,7 @@ def getOutputs(w1, w2, instance):
   Caluculates the hidden and output layer output values, given set of weights and input
   """
   hidden = sigmoid(np.sum(w1*(np.hstack((instance,np.ones(1.0)))), axis = 1))
-  output = sigmoid(np.sum(w2*(np.hstack((instance,np.ones(1.0)))), axis = 1))
+  output = sigmoid(np.sum(w2*(np.hstack((hidden,np.ones(1.0)))), axis = 1))
   
   return (hidden, output)
 
@@ -67,10 +67,39 @@ def preprocess():
     # Your code here.
     # Feature selection
     # Your code here.
+    training_data = np.zeros((0,784))
+    test_data = np.zeros((0,784))
+    training_labels = np.zeros((0,))
+    test_labels = np.zeros(0,)
 
-    print('preprocess done')
+    for i in range(10):
+      training_data = np.vstack ((training_data, mat['train' + str(i)]))
+      test_data = np.vstack ((test_data, mat['test' + str(i)]))
+      training_labels = np.hstack((training_labels, i * np.ones(mat['train' + str(i)].shape[0])))
+      test_labels = np.hstack((test_labels, i * np.ones(mat['test' + str(i)].shape[0])))
+    
+    training_data = training_data.astype(np.float)
+    test_data = test_data.astype(np.float)
+    training_data = training_data/255
+    test_data = test_data/255
+    
+    train_indices = np.random.permutation(60000)
 
-    return train_data, train_label, validation_data, validation_label, test_data, test_label
+    train_data = training_data[train_indices[0:50000],:]
+    validation_data = training_data[train_indices[50000:],:]
+    train_labels = training_labels[train_indices[0:50000]]
+    validation_labels = training_labels[train_indices[50000:]]
+
+    useless_columns = []
+    for i in range(784):
+      if np.unique(train_data[:,i]).size == 1:
+        useless_columns.append(i)
+    
+    train_data = np.delete(train_data, useless_columns, axis = 1)
+    validation_data = np.delete(validation_data, useless_columns, axis= 1)
+    test_data = np.delete(test_data, useless_columns, axis = 1)
+
+    return train_data, train_labels, validation_data, validation_labels, test_data, test_labels
 
 
 def nnObjFunction(params, *args):
@@ -162,7 +191,7 @@ def nnPredict(w1, w2, data):
 
 """**************Neural Network Script Starts here********************************"""
 
-#train_data, train_label, validation_data, validation_label, test_data, test_label = preprocess()
+train_data, train_label, validation_data, validation_label, test_data, test_label = preprocess()
 # #  Train Neural Network
 
 # # set the number of nodes in input unit (not including bias unit)
