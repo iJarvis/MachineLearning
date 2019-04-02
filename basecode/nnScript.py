@@ -6,8 +6,6 @@ from time import strftime, localtime
 import sys
 import pickle
 
-is_celeb_data = False
-
 def getOutputs(w1, w2, instance):
   """
   Caluculates the hidden and output layer output values, given set of weights and input
