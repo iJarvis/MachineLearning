@@ -1,10 +1,12 @@
 import numpy as np
+import pandas as pd
 from scipy.optimize import minimize
 from scipy.io import loadmat
 from math import sqrt
 from time import strftime, localtime
 import sys
 import pickle
+import time
 
 def getOutputs(w1, w2, data):
   """
@@ -226,55 +228,101 @@ train_data, train_label, validation_data, validation_label, test_data, test_labe
 # set the number of nodes in input unit (not including bias unit)
 n_input = train_data.shape[1]
 
-# set the number of nodes in hidden unit (not including bias unit)
+# # set the number of nodes in hidden unit (not including bias unit)
 n_hidden = 50
 
-# set the number of nodes in output unit
+# # set the number of nodes in output unit
 n_class = 10
 
-# initialize the weights into some random matrices
-initial_w1 = initializeWeights(n_input, n_hidden)
-initial_w2 = initializeWeights(n_hidden, n_class)
+# # initialize the weights into some random matrices
+# initial_w1 = initializeWeights(n_input, n_hidden)
+# initial_w2 = initializeWeights(n_hidden, n_class)
 
-# unroll 2 weight matrices into single column vector
-initialWeights = np.concatenate((initial_w1.flatten(), initial_w2.flatten()), 0)
+# # unroll 2 weight matrices into single column vector
+# initialWeights = np.concatenate((initial_w1.flatten(), initial_w2.flatten()), 0)
 
-# set the regularization hyper-parameter
+# # set the regularization hyper-parameter
 lambdaval = 0
 
-args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
+# args = (n_input, n_hidden, n_class, train_data, train_label, lambdaval)
 
-# Train Neural Network using fmin_cg or minimize from scipy,optimize module. Check documentation for a working example
+# # Train Neural Network using fmin_cg or minimize from scipy,optimize module. Check documentation for a working example
 
 opts = {'maxiter': 50}  # Preferred value.
 
-nn_params = minimize(nnObjFunction, initialWeights, jac=True, args=args, method='CG', options=opts)
+# nn_params = minimize(nnObjFunction, initialWeights, jac=True, args=args, method='CG', options=opts)
 
-# # In Case you want to use fmin_cg, you may have to split the nnObjectFunction to two functions nnObjFunctionVal
-# # and nnObjGradient. Check documentation for this function before you proceed.
-# # nn_params, cost = fmin_cg(nnObjFunctionVal, initialWeights, nnObjGradient,args = args, maxiter = 50)
+# # # In Case you want to use fmin_cg, you may have to split the nnObjectFunction to two functions nnObjFunctionVal
+# # # and nnObjGradient. Check documentation for this function before you proceed.
+# # # nn_params, cost = fmin_cg(nnObjFunctionVal, initialWeights, nnObjGradient,args = args, maxiter = 50)
 
 
-# Reshape nnParams from 1D vector into w1 and w2 matrices
-w1 = nn_params.x[0:n_hidden * (n_input + 1)].reshape((n_hidden, (n_input + 1)))
-w2 = nn_params.x[(n_hidden * (n_input + 1)):].reshape((n_class, (n_hidden + 1)))
+# # Reshape nnParams from 1D vector into w1 and w2 matrices
+# w1 = nn_params.x[0:n_hidden * (n_input + 1)].reshape((n_hidden, (n_input + 1)))
+# w2 = nn_params.x[(n_hidden * (n_input + 1)):].reshape((n_class, (n_hidden + 1)))
  
-# Test the computed parameters
+# # Test the computed parameters
 
-predicted_label = nnPredict(w1, w2, train_data)
+# predicted_label = nnPredict(w1, w2, train_data)
 
-# find the accuracy on Training Dataset
+# # find the accuracy on Training Dataset
 
-print('\n Training set Accuracy:' + str(100 * np.mean((predicted_label == train_label).astype(float))) + '%')
+# print('\n Training set Accuracy:' + str(100 * np.mean((predicted_label == train_label).astype(float))) + '%')
 
-predicted_label = nnPredict(w1, w2, validation_data)
+# predicted_label = nnPredict(w1, w2, validation_data)
 
-# find the accuracy on Validation Dataset
+# # find the accuracy on Validation Dataset
 
-print('\n Validation set Accuracy:' + str(100 * np.mean((predicted_label == validation_label).astype(float))) + '%')
+# print('\n Validation set Accuracy:' + str(100 * np.mean((predicted_label == validation_label).astype(float))) + '%')
 
-predicted_label = nnPredict(w1, w2, test_data)
+# predicted_label = nnPredict(w1, w2, test_data)
 
-# find the accuracy on Validation Dataset
+# # find the accuracy on Validation Dataset
 
-print('\n Test set Accuracy:' + str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
+# print('\n Test set Accuracy:' + str(100 * np.mean((predicted_label == test_label).astype(float))) + '%')
+
+acc_train = {} #type:dict
+acc_test = {} #type:dict
+acc_validate = {} #type:dict
+lambda_vals =[x for x in range(0,61,5)]
+hidden_node_list = [4, 8, 12, 16, 20]
+data = np.zeros((0,6))
+for hidden_node_num in hidden_node_list:
+  for lambda_val in lambda_vals:
+    
+      args = (n_input, hidden_node_num, n_class, train_data, train_label, lambda_val)
+
+      #Train Neural Network using fmin_cg or minimize from scipy,optimize module. Check documentation for a working example
+      opts = {'maxiter' :50}    # Preferred value.
+      initial_w1 = initializeWeights(n_input, hidden_node_num)
+      initial_w2 = initializeWeights(hidden_node_num, n_class)
+      # unroll 2 weight matrices into single column vector
+      initialWeights = np.concatenate((initial_w1.flatten(), initial_w2.flatten()),0)
+
+      start = time.time()
+      nn_params = minimize(nnObjFunction, initialWeights, jac=True, args=args,method='CG', options=opts)
+      end = time.time()
+      times = end-start
+      params = nn_params.get('x')
+      #Reshape nnParams from 1D vector into w1 and w2 matrices
+      w1 = params[0:(hidden_node_num * (n_input + 1))].reshape( (hidden_node_num, (n_input + 1)))
+      w2 = params[(hidden_node_num * (n_input + 1)):].reshape((n_class, (hidden_node_num + 1)))
+
+      #Test the computed parameters
+      predicted_label = nnPredict(w1,w2,train_data)
+      #find the accuracy on Training Dataset
+      training_acc = 100*np.mean((predicted_label == train_label).astype(float))
+      print('\n Training set Accuracy for '+str(hidden_node_num) + " hidden nodes: " + str(training_acc) + '%')
+      predicted_label = nnPredict(w1,w2,validation_data)
+      #find the accuracy on Validation Dataset
+      validation_acc = 100*np.mean((predicted_label == validation_label).astype(float))
+      print('\n Validation set Accuracy for '+str(hidden_node_num) + " hidden nodes : " + str(validation_acc) + '%')
+      predicted_label = nnPredict(w1,w2,test_data)
+      #find the accuracy on Validation Dataset
+      test_acc = 100*np.mean((predicted_label == test_label).astype(float))
+      print('\n Test set Accuracy for '+str(hidden_node_num) + " hidden nodes : " + str(test_acc) + '%')
+      data = np.vstack((data,[hidden_node_num, lambda_val, training_acc, validation_acc, test_acc, times/1000.0]))
+
+df = pd.DataFrame(data = data, columns = ['Hidden Nodes', 'Lambda', 'training accuracy','validation accuracy', 'testing accuraacy', 'time taken'])
+print(df)
+export_csv = df.to_csv (r'D:\Syed\Graduate\Spring19\ML\Assignment2\Assignment2\export_dataframe.csv', index = None, header=True) #Don't forget to add '.csv' at the end of the path

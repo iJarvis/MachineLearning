@@ -181,6 +181,10 @@ for hidden_node_num in hidden_node_list:
 
     #Train Neural Network using fmin_cg or minimize from scipy,optimize module. Check documentation for a working example
     opts = {'maxiter' :50}    # Preferred value.
+    initial_w1 = initializeWeights(n_input, hidden_node_num)
+    initial_w2 = initializeWeights(hidden_node_num, n_class)
+    # unroll 2 weight matrices into single column vector
+    initialWeights = np.concatenate((initial_w1.flatten(), initial_w2.flatten()),0)
 
     start = time.time()
     nn_params = minimize(nnObjFunction, initialWeights, jac=True, args=args,method='CG', options=opts)
