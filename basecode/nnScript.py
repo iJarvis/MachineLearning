@@ -19,8 +19,6 @@ def getOutputs(w1, w2, data):
   hidden = np.concatenate((hidden, hidden_bias), axis = 0)
 
   output = sigmoid(np.dot(w2, hidden))
-  # hidden = sigmoid(np.sum(w1*(np.hstack((instance,np.ones(1)))), axis = 1))
-  # output = sigmoid(np.sum(w2*(np.hstack((hidden,np.ones(1)))), axis = 1))
   
   return (data, hidden, output)
 
